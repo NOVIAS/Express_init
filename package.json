@@ -1,0 +1,21 @@
+{
+  "name": "express_test",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node ./bin/www"
+  },
+  "dependencies": {
+    "cookie-parser": "~1.4.4",
+    "debug": "~2.6.9",
+    "express": "~4.16.1",
+    "morgan": "~1.9.1",
+    "mysql": "^2.18.1",
+    "rotating-file-stream": "^2.1.5"
+  },
+  "devDependencies": {
+    "webpack": "^5.24.1",
+    "webpack-dev-middleware": "^4.1.0",
+    "webpack-hot-middleware": "^2.25.0"
+  }
+}
