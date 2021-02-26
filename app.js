@@ -2,9 +2,10 @@ const express = require("express");
 const path = require("path");
 const cookieParser = require("cookie-parser");
 const morgan = require("./config/details/logger");
+const cors = require("cors");
+const routes = require("./routes");
 const app = express();
 
-const routes = require("./routes");
 // webpack config
 
 app.use(express.json());
@@ -16,6 +17,7 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use(morgan.dev);
 app.use(morgan.combined);
 // add CORS handle
+app.use(cors());
 
 // add exception handle
 
