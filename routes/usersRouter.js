@@ -114,18 +114,11 @@ router.delete("/delete", (req, res) => {
  */
 router.put("/update", (req, res) => {
   // 解析传递过来需要处理的k,v
-  const preHandle = [...Object.entries(req.body)];
-  const columns = [];
-  const values = [];
-  let keyId = undefined;
-  preHandle.forEach((item) => {
-    if (item[0] === "id") {
-      keyId = item[1];
-    } else {
-      columns.push(`${item[0]} = ?`);
-      values.push(item[1]);
-    }
-  });
+  const preHandle = new Map([...Object.entries(req.body)]);
+  const keyId = parseInt(preHandle.get("id"));
+  const columns = [...preHandle.delete('id').keys()];
+  const values = [...preHandle.values()];
+
   const sql = `update users set ${columns.join(",")} where id = ?`;
   const error = "update a user had failed";
   utils.queryUtils(
@@ -139,7 +132,7 @@ router.put("/update", (req, res) => {
         res.send({ status: 1, msg: "修改失败" });
       }
     },
-    [...values, keyId]
+    [...values, keyId)]
   );
 });
 
