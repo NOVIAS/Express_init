@@ -1,31 +1,31 @@
 const router = require("express").Router();
-const pool = require("../config/details/dbConfig");
-const utils = require("../utils/dbUtil");
+const query = require("../utils/dbUtil");
 
 /**
  * @api {get} /list   获取用户列表
  * @apiName GetAllUsers
  * @apiGroup User
  *
- * @apiParam {Number} id 用户唯一主键.
- *
  * @apiSuccessExample {json} Success-Response:
  *     HTTP/1.1 200 OK
- *      [{
+ *      {
+ *       "status":0,
+ *       "data":[{
  *          "id": 1,
  *          "name": "张三",
  *          "age": 18,
  *          "sex": 1
  *      }]
  */
-
-router.get("/list", function (req, res) {
+router.get("/list", function (req, res, next) {
   const sql = "select * from users";
-  const error = "select all users failed";
-  utils.queryUtils(pool, sql, (err, results) => {
-    if (err) throw new Error(error);
-    res.send(results);
-  });
+  query(sql)
+    .then((result) => {
+      res.send({ status: 0, data: result });
+    })
+    .catch((e) => {
+      next(e);
+    });
 });
 
 /**
@@ -44,56 +44,20 @@ router.get("/list", function (req, res) {
  *       "msg": "添加成功"
  *     }
  */
-router.post("/add", function (req, res) {
+router.post("/add", function (req, res, next) {
   const sql = "insert into users set ?";
-  const error = "insert a user failed";
   const body = req.body;
-  utils.queryUtils(
-    pool,
-    sql,
-    (err, results) => {
-      if (err) throw new Error(error);
-      if (results.insertId) {
+  query(sql, body)
+    .then((data) => {
+      if (data.insertId) {
         res.send({ status: 0, msg: "添加成功" });
       } else {
         res.send({ status: 1, msg: "添加失败" });
       }
-    },
-    body
-  );
-});
-
-/**
- * @api {delete} /delete   删除一个用户
- * @apiName DeleteUser
- * @apiGroup User
- *
- * @apiParam {Number}  id  用户唯一标识
- *
- * @apiSuccessExample {json} Success-Response:
- *     HTTP/1.1 200 OK
- *     {
- *       "status": 0,
- *       "msg": "删除成功"
- *     }
- */
-router.delete("/delete", (req, res) => {
-  const sql = "delete from users where id = ?";
-  const error = "delete a user had failed";
-
-  utils.queryUtils(
-    pool,
-    sql,
-    (err, results) => {
-      if (err) throw new Error(error);
-      if (results.affectedRows >= 0) {
-        res.send({ status: 0, msg: "删除成功" });
-      } else {
-        res.send({ status: 1, msg: "删除失败" });
-      }
-    },
-    req.body.id
-  );
+    })
+    .catch((e) => {
+      next(e);
+    });
 });
 
 /**
@@ -112,28 +76,55 @@ router.delete("/delete", (req, res) => {
  *       "msg": "修改成功"
  *     }
  */
-router.put("/update", (req, res) => {
+
+router.put("/update", (req, res, next) => {
   // 解析传递过来需要处理的k,v
   const preHandle = new Map([...Object.entries(req.body)]);
   const keyId = parseInt(preHandle.get("id"));
-  const columns = [...preHandle.delete('id').keys()];
+  preHandle.delete("id");
+  const columns = [...preHandle.keys()];
   const values = [...preHandle.values()];
-
-  const sql = `update users set ${columns.join(",")} where id = ?`;
-  const error = "update a user had failed";
-  utils.queryUtils(
-    pool,
-    sql,
-    (err, results) => {
-      if (err) throw new Error(error);
-      if (results.changedRows >= 0) {
+  const sql = `update users set ${columns.join(" = ?,")} = ? where id = ?`;
+  query(sql, [...values, keyId])
+    .then((data) => {
+      if (data.changedRows >= 0) {
         res.send({ status: 0, msg: "修改成功" });
       } else {
         res.send({ status: 1, msg: "修改失败" });
       }
-    },
-    [...values, keyId)]
-  );
+    })
+    .catch((e) => {
+      next(e);
+    });
+});
+
+/**
+ * @api {delete} /delete   删除一个用户
+ * @apiName DeleteUser
+ * @apiGroup User
+ *
+ * @apiParam {Number}  id  用户唯一标识
+ *
+ * @apiSuccessExample {json} Success-Response:
+ *     HTTP/1.1 200 OK
+ *     {
+ *       "status": 0,
+ *       "msg": "删除成功"
+ *     }
+ */
+router.delete("/delete", (req, res, next) => {
+  const sql = "delete from users where id = ?";
+  query(sql, req.body.id)
+    .then((data) => {
+      if (data.affectedRows >= 0) {
+        res.send({ status: 0, msg: "删除成功" });
+      } else {
+        res.send({ status: 1, msg: "删除失败" });
+      }
+    })
+    .catch((e) => {
+      next(e);
+    });
 });
 
 module.exports = router;

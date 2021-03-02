@@ -27,7 +27,7 @@ app.use((err, req, res, next) => {
   // 返回错误信息
   res.send({
     status: err.status || 500,
-    error: app.get("env") === "development" ? err.msg : {},
+    error: app.get("env") === "development" ? err.msg : { msg: "Sorry" },
   });
 });
 
